@@ -1,0 +1,709 @@
+@import "tailwindcss";
+
+/* ==========================================
+   NEXOVA X — PREMIUM LOGIN PAGE
+========================================== */
+
+.nexova-login {
+  min-height: 100vh;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: #f0f0f0;
+  color: #171717;
+  font-family: "IBM Plex Serif", serif;
+}
+
+/* LEFT PANEL */
+
+.login-left-panel {
+  position: relative;
+  min-height: calc(100vh - 44px);
+  overflow: hidden;
+  border-radius: 13px 0 0 13px;
+  background: #111111;
+  color: #ffffff;
+}
+
+.login-grid-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.65;
+  pointer-events: none;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px
+    );
+
+  background-size: 43px 43px;
+
+  mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 65%,
+    transparent 100%
+  );
+}
+
+.login-left-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 650px;
+  min-height: calc(100vh - 44px);
+  margin: auto;
+  padding: 35px 7%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* BRAND */
+
+.nexova-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nexova-brand-symbol {
+  width: 39px;
+  height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #1683ff;
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.nexova-brand-name {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.nexova-brand-name > span {
+  color: #1683ff;
+}
+
+.nexova-brand-name small {
+  display: block;
+  margin-top: 4px;
+  color: #a0a0a0;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+}
+
+/* LEFT HEADING */
+
+.login-hero-text {
+  margin-top: clamp(40px, 7vh, 75px);
+}
+
+.login-eyebrow {
+  color: #64adff;
+  font-family: Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.login-hero-text h1 {
+  margin: 21px 0 19px;
+  font-size: clamp(35px, 3.3vw, 49px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -1.4px;
+}
+
+.login-hero-text h1 span {
+  color: #1683ff;
+}
+
+.login-hero-text > p {
+  max-width: 400px;
+  margin: 0;
+  color: #b7b7b7;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+/* WORKSPACE PREVIEW */
+
+.workspace-preview {
+  margin-top: auto;
+  padding: 21px;
+  border: 1px solid #303030;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(8px);
+}
+
+.preview-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 17px;
+}
+
+.preview-label {
+  color: #8b8b8b;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+}
+
+.preview-top h3 {
+  margin: 8px 0 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.preview-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 1px solid #303b34;
+  border-radius: 5px;
+  color: #c1e8d1;
+  font-family: Arial, sans-serif;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.preview-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #42c783;
+}
+
+.preview-task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid #303030;
+}
+
+.preview-task-icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #383838;
+  border-radius: 6px;
+  color: #78b8ff;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+}
+
+.preview-task-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.preview-task-details strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.preview-task-details span {
+  color: #999999;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+}
+
+.preview-task-check {
+  width: 21px;
+  height: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #343434;
+  border-radius: 50%;
+  color: #1683ff;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+}
+
+/* LEFT FOOTER */
+
+.login-left-footer {
+  margin-top: 25px;
+}
+
+.footer-line {
+  width: 34px;
+  height: 2px;
+  margin-bottom: 13px;
+  background: #1683ff;
+}
+
+.login-left-footer p {
+  margin: 0;
+  color: #c3c3c3;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  line-height: 1.9;
+  letter-spacing: 0.8px;
+}
+
+.login-left-footer > span {
+  display: block;
+  margin-top: 15px;
+  color: #747474;
+  font-family: Arial, sans-serif;
+  font-size: 9px;
+}
+
+/* RIGHT PANEL */
+
+.login-right-panel {
+  position: relative;
+  min-height: calc(100vh - 44px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 10%;
+  border-radius: 0 13px 13px 0;
+  background: #ffffff;
+}
+
+.login-right-top {
+  position: absolute;
+  top: 32px;
+  right: 35px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #777777;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.login-secure-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1683ff;
+}
+
+/* LOGIN FORM */
+
+.login-form-wrapper {
+  width: 100%;
+  max-width: 390px;
+  margin: auto;
+}
+
+.login-form-heading {
+  margin-bottom: 31px;
+}
+
+.form-eyebrow {
+  color: #1683ff;
+  font-family: Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+}
+
+.login-form-heading h2 {
+  margin: 15px 0 9px;
+  font-size: clamp(31px, 3vw, 39px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.login-form-heading h2 span {
+  color: #1683ff;
+}
+
+.login-form-heading > p {
+  margin: 0;
+  color: #777777;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* INPUTS */
+
+.nexova-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.nexova-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.nexova-form-field > label {
+  color: #292929;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.nexova-form-field input {
+  width: 100%;
+  height: 48px;
+  padding: 0 13px;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  outline: none;
+  background: #ffffff;
+  color: #171717;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nexova-form-field input::placeholder {
+  color: #999999;
+}
+
+.nexova-form-field input:focus {
+  border-color: #1683ff;
+  box-shadow: 0 0 0 3px rgba(22, 131, 255, 0.09);
+}
+
+/* PASSWORD */
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 62px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #7b8798;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: #1683ff;
+  background: #eff6ff;
+}
+
+.password-toggle svg {
+  display: block;
+}
+
+/* LOGIN OPTIONS */
+
+.login-options {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -10px;
+}
+
+.login-options span {
+  color: #777777;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+}
+
+/* BUTTON */
+
+.nexova-login-button {
+  width: 100%;
+  height: 47px;
+  margin-top: -3px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: none;
+  border-radius: 6px;
+  background: #1683ff;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.nexova-login-button:hover {
+  transform: translateY(-1px);
+  background: #086ddd;
+}
+
+.login-button-arrow {
+  position: absolute;
+  right: 15px;
+  font-size: 17px;
+}
+
+/* REGISTER */
+
+.nexova-register-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 28px;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+}
+
+.nexova-register-prompt > span {
+  color: #777777;
+}
+
+.nexova-register-prompt button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #1683ff;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nexova-register-prompt button:hover {
+  text-decoration: underline;
+}
+
+.nexova-register-prompt button span {
+  margin-left: 3px;
+}
+
+.nexova-admin-note {
+  margin-top: 25px;
+  color: #777777;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+}
+
+/* RIGHT FOOTER */
+
+.nexova-login-bottom {
+  position: absolute;
+  right: 10%;
+  bottom: 22px;
+  left: 10%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #999999;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* TABLET */
+
+@media (max-width: 950px) {
+  .nexova-login {
+    padding: 12px;
+  }
+
+  .login-left-panel,
+  .login-right-panel {
+    min-height: calc(100vh - 24px);
+  }
+
+  .login-left-content {
+    min-height: calc(100vh - 24px);
+    padding: 28px 6%;
+  }
+
+  .login-right-panel {
+    padding: 55px 7%;
+  }
+
+  .login-hero-text h1 {
+    font-size: 36px;
+  }
+
+  .workspace-preview {
+    padding: 15px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 680px) {
+  .nexova-login {
+    grid-template-columns: 1fr;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .login-left-panel {
+    min-height: auto;
+    border-radius: 0;
+  }
+
+  .login-left-content {
+    min-height: auto;
+    padding: 26px 23px 22px;
+  }
+
+  .login-hero-text {
+    margin-top: 37px;
+  }
+
+  .login-hero-text h1 {
+    font-size: 38px;
+  }
+
+  .login-hero-text > p {
+    font-size: 12px;
+  }
+
+  .workspace-preview {
+    margin-top: 30px;
+  }
+
+  .login-left-footer {
+    margin-top: 22px;
+  }
+
+  .login-left-footer > span {
+    margin-top: 10px;
+  }
+
+  .login-right-panel {
+    min-height: auto;
+    padding: 65px 24px 75px;
+    border-radius: 0;
+  }
+
+  .login-right-top {
+    display: none;
+  }
+
+  .login-form-wrapper {
+    max-width: 440px;
+  }
+
+  .login-form-heading h2 {
+    font-size: 35px;
+  }
+
+  .nexova-login-bottom {
+    right: 24px;
+    bottom: 20px;
+    left: 24px;
+  }
+}
+
+/* SHORT SCREENS */
+
+@media (max-height: 760px) and (min-width: 681px) {
+  .login-left-content {
+    padding-top: 24px;
+    padding-bottom: 20px;
+  }
+
+  .login-hero-text {
+    margin-top: 32px;
+  }
+
+  .login-hero-text h1 {
+    font-size: 36px;
+  }
+
+  .login-hero-text > p {
+    font-size: 15px;
+  }
+
+  .workspace-preview {
+    padding: 13px 17px;
+  }
+
+  .preview-task {
+    padding: 9px 0;
+  }
+
+  .login-right-panel {
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+
+  .login-form-heading {
+    margin-bottom: 24px;
+  }
+
+  .nexova-auth-form {
+    gap: 17px;
+  }
+}
+/* Registration validation message */
+
+.register-error {
+  margin: -8px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.register-success {
+  margin: -8px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  background: #f0fdf4;
+  color: #166534;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.nexova-login-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
