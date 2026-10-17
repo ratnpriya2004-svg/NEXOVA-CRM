@@ -5,6 +5,7 @@ import Login from "./Component/Login/Login.jsx";
 import EmployeeDashboard from "./Component/EmployeeDashboard/EmployeeDashboard.jsx";
 import AdminDashboard from "./Component/AdminDashboard/AdminDashboard.jsx";
 import { supabase } from "./lib/supabase";
+import Home from "./Component/Home/Home.jsx";
 
 const TAB_LOGIN_KEY = "nexova_authenticated_tab";
 
@@ -51,7 +52,7 @@ function App() {
 
         if (!hadLoginInThisTab) {
           await supabase.auth.signOut({ scope: "local" });
-          if (active) setCurrentPage("login");
+          if (active) setCurrentPage("home");
           return;
         }
 
@@ -60,7 +61,7 @@ function App() {
 
         if (sessionError || !session?.user) {
           sessionStorage.removeItem(TAB_LOGIN_KEY);
-          if (active) setCurrentPage("login");
+          if (active) setCurrentPage("home");
           return;
         }
 
@@ -131,6 +132,11 @@ function App() {
     setCurrentPage("login");
   };
 
+    const handleOpenLogin = () => {
+  setError("");
+  setCurrentPage("login");
+};
+
   if (currentPage === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
@@ -147,16 +153,37 @@ function App() {
     return <EmployeeDashboard employeeName={userName} onLogout={handleLogout} />;
   }
 
+  if (currentPage === "login") {
   return (
     <div className="min-h-screen">
       <Login role="admin" onLogin={handleLogin} />
+
       {error && (
-        <p role="alert" className="mx-auto mt-4 max-w-md rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm text-red-700">
+        <p
+          role="alert"
+          className="mx-auto mt-4 max-w-md rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm text-red-700"
+        >
           {error}
         </p>
       )}
+
+      <button
+      type="button"
+      onClick={() => {
+        setError("");
+        setCurrentPage("home");
+      }}
+      aria-label="Close login"
+      className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-black"
+    >
+      <span className="text-2xl leading-none">&times;</span>
+    </button>
     </div>
   );
+}
+
+return <Home onLogin={handleOpenLogin} />;
+
 }
 
 export default App;
