@@ -5,6 +5,10 @@ import Employees from "./Employees";
 import Tasks from "./Tasks";
 import Progress from "./Progress";
 import Reports from "./Reports";
+import {
+  ResponsiveContainer, AreaChart, Area, LineChart, Line, BarChart, Bar,
+  PieChart, Pie, Cell, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
+} from "recharts";
 
 const navigation = [
   { name: "Overview", icon: "overview" },
@@ -162,6 +166,8 @@ export default function AdminDashboard({
   const [stats, setStats] = useState(initialStats);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState("");
+  const [chartTasks, setChartTasks] = useState([]);
+  const [chartProjects, setChartProjects] = useState([]);
 
   const [selectedCard, setSelectedCard] = useState("");
   const [records, setRecords] = useState([]);
@@ -225,6 +231,21 @@ export default function AdminDashboard({
     loadStats();
   }, [loadStats]);
 
+  useEffect(() => {
+    let active = true;
+    async function loadChartData() {
+      const [taskResult, projectResult] = await Promise.all([
+        supabase.from("tasks").select("id, title, status, priority, created_at, due_date"),
+        supabase.from("projects").select("id, name, status, created_at, due_date"),
+      ]);
+      if (!active) return;
+      if (!taskResult.error) setChartTasks(taskResult.data ?? []);
+      if (!projectResult.error) setChartProjects(projectResult.data ?? []);
+    }
+    loadChartData();
+    return () => { active = false; };
+  }, []);
+
   // Refresh dashboard data.
   async function handleRefresh() {
     setRefreshing(true);
@@ -240,32 +261,17 @@ export default function AdminDashboard({
     }
   }
 
-  // Load records when a statistic card is clicked.
-  async function openCard(cardKey) {
-    setSelectedCard(cardKey);
-    setRecords([]);
-    setRecordsError("");
-    setRecordsLoading(true);
+  // Stat cards navigate to their actual module pages.
+  function openCard(cardKey) {
+    const pageByCard = {
+      projects: "Projects",
+      employees: "Employees",
+      tasks: "Tasks",
+      completedTasks: "Tasks",
+    };
 
-    try {
-      const queryFunction = cardQueries[cardKey];
-
-      if (!queryFunction) {
-        throw new Error("Unknown dashboard category.");
-      }
-
-      const { data, error } = await queryFunction();
-
-      if (error) throw error;
-
-      setRecords(data ?? []);
-    } catch (error) {
-      setRecordsError(
-        error.message || "Unable to load records."
-      );
-    } finally {
-      setRecordsLoading(false);
-    }
+    const targetPage = pageByCard[cardKey];
+    if (targetPage) handleNavigation(targetPage);
   }
 
   function closeCardDetails() {
@@ -422,190 +428,75 @@ export default function AdminDashboard({
   }
 
   function renderOverview() {
+    const statusOf = (value = "") => value.toLowerCase().replaceAll("_", " ");
+    const statusCounts = [
+      { name: "Completed", value: chartTasks.filter(t => statusOf(t.status) === "completed" || statusOf(t.status) === "done").length, color: "#b7ff4a" },
+      { name: "In progress", value: chartTasks.filter(t => statusOf(t.status).includes("progress") || statusOf(t.status) === "in progress").length, color: "#9b7bff" },
+      { name: "Pending", value: chartTasks.filter(t => ["pending", "todo", "to do", "open"].includes(statusOf(t.status))).length, color: "#35d8ef" },
+    ];
+    const monthlyData = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(); d.setMonth(d.getMonth() - (6 - i));
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const label = d.toLocaleDateString("en-US", { month: "short" });
+      const tasks = chartTasks.filter(t => (t.created_at || "").slice(0, 7) === key);
+      const completed = tasks.filter(t => ["completed", "done"].includes(statusOf(t.status))).length;
+      return { month: label, created: tasks.length, completed };
+    });
+    const weeklyData = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => {
+      const now = new Date();
+      const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+      const date = new Date(monday); date.setDate(monday.getDate() + index);
+      const key = date.toDateString();
+      return { day, tasks: chartTasks.filter(t => t.created_at && new Date(t.created_at).toDateString() === key).length };
+    });
+    const recentTasks = [...chartTasks].sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 5);
+    const recentProjects = [...chartProjects].sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 3);
+    const cardThemes = [
+      { key: "projects", title: "Total Projects", accent: "#b7ff4a", icon: "projects" },
+      { key: "employees", title: "Total Employees", accent: "#9b7bff", icon: "employees" },
+      { key: "tasks", title: "Total Tasks", accent: "#35d8ef", icon: "tasks" },
+      { key: "completedTasks", title: "Completed Tasks", accent: "#ffcf5a", icon: "completed" },
+    ];
     return (
-      <>
-        {/* Welcome Section */}
-        <section className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+      <div className="space-y-6 text-white">
+        <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-2 text-sm font-bold tracking-widest text-blue-600">
-              ADMIN WORKSPACE
-            </p>
-
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              Welcome back, {adminName}!
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Manage your projects, team and tasks from one place.
-            </p>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300">NEXOVA X / ANALYTICS</p>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Welcome back, {adminName}<span className="text-cyan-300">.</span></h2>
+            <p className="mt-2 text-sm text-slate-400">Here’s what’s happening across your workspace.</p>
           </div>
-
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshing || statsLoading}
-            className="inline-flex items-center justify-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-60 sm:self-auto"
-          >
-            <span className={refreshing ? "animate-spin" : ""}>
-              ↻
-            </span>
-            {refreshing ? "Refreshing..." : "Refresh Dashboard"}
-          </button>
+          <button type="button" onClick={handleRefresh} disabled={refreshing || statsLoading} className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 disabled:opacity-50">{refreshing ? "Refreshing…" : "↻ Refresh dashboard"}</button>
         </section>
 
-        {/* Statistics Error */}
-        {statsError && (
-          <div
-            role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
-          >
-            <p className="font-semibold">
-              Could not load dashboard statistics.
-            </p>
+        {statsError && <div role="alert" className="rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">{statsError}</div>}
 
-            <p className="mt-1 break-words">{statsError}</p>
-
-            <button
-              type="button"
-              onClick={loadStats}
-              className="mt-3 rounded-lg bg-red-100 px-4 py-2 font-semibold hover:bg-red-200"
-            >
-              Try again
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+          {cardThemes.map((item, index) => (
+            <button key={item.key} type="button" onClick={() => openCard(item.key)} className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0a1929] p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:shadow-xl hover:shadow-cyan-950/30">
+              <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full opacity-10 blur-2xl" style={{ background: item.accent }} />
+              <div className="relative flex items-start justify-between gap-3"><div><p className="text-xs text-slate-400">{item.title}</p><p className="mt-3 text-3xl font-semibold tracking-tight">{statsLoading ? "—" : stats[item.key]}</p><p className="mt-2 text-[11px] text-slate-500">{["Across your workspace", "Active team members", "All assigned work", "Successfully finished"][index]}</p></div><span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ color: item.accent, background: `${item.accent}18` }}><Icon name={item.icon} className="h-5 w-5" /></span></div>
+              <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/[0.07]"><div className="h-full rounded-full transition-all duration-700 group-hover:w-full" style={{ width: `${[72,58,84,Math.min(100, stats.tasks ? stats.completedTasks / stats.tasks * 100 : 0)][index]}%`, background: item.accent }} /></div>
             </button>
-          </div>
-        )}
-
-        {/* Statistics Cards */}
-        <section>
-          <div className="mb-5">
-            <h3 className="text-lg font-bold text-slate-900">
-              Workspace Overview
-            </h3>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Click any card to explore its records.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {statDefinitions.map((stat) => {
-              const styles = colorStyles[stat.color];
-
-              return (
-                <button
-                  key={stat.key}
-                  type="button"
-                  onClick={() => openCard(stat.key)}
-                  aria-label={`View ${stat.title}`}
-                  className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 text-left shadow-[0_4px_18px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#1683FF]/50 hover:shadow-[0_18px_40px_rgba(22,131,255,0.12)] focus:outline-none focus:ring-2 focus:ring-[#1683FF] sm:p-6 before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-gradient-to-r before:from-[#1683FF] before:to-[#73b5ff] before:opacity-0 before:transition-opacity hover:before:opacity-100"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-slate-500">
-                        {stat.title}
-                      </p>
-
-                      <h4
-                        className={`mt-4 text-3xl font-bold ${
-                          styles.value
-                        }`}
-                      >
-                        {statsLoading ? "..." : stats[stat.key]}
-                      </h4>
-                    </div>
-
-                    <span
-                      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ring-inset ring-black/[0.03] transition duration-300 group-hover:rotate-3 group-hover:scale-105 ${styles.icon}`}
-                    >
-                      <Icon name={stat.icon} className="h-7 w-7" />
-                    </span>
-                  </div>
-
-                  <p className="mt-3 text-xs text-slate-500">
-                    {stat.description}
-                  </p>
-
-                  <p className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs font-bold text-[#1683FF] transition-colors group-hover:text-slate-950">
-                    View details →
-                  </p>
-                </button>
-              );
-            })}
-          </div>
+          ))}
         </section>
 
-        {/* Selected Card Details */}
-        {selectedCard && (
-          <section
-            className="mt-8 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.045)] sm:p-6"
-            aria-live="polite"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">
-                  {selectedDefinition?.title} Details
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {recordsLoading
-                    ? "Loading..."
-                    : `${records.length} record(s) loaded`}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={closeCardDetails}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-              >
-                Close
-              </button>
-            </div>
-
-            {renderRecords()}
-          </section>
-        )}
-
-        {/* Workspace Modules */}
-        <section className="mt-8 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.045)] sm:p-6">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              Workspace Modules
-            </h3>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Navigate to the section you want to manage.
-            </p>
+        <section className="grid grid-cols-1 gap-5 2xl:grid-cols-[1.65fr_1fr]">
+          <div className="rounded-2xl border border-white/[0.08] bg-[#071726] p-5 sm:p-6">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-semibold">Task analytics</h3><p className="mt-1 text-xs text-slate-500">Tasks created and completed by month</p></div><span className="rounded-lg border border-white/10 px-3 py-1.5 text-[11px] text-slate-400">Last 7 months</span></div>
+            <div className="h-[260px] w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={monthlyData} margin={{ top: 10, right: 8, left: -20, bottom: 0 }}><defs><linearGradient id="createdFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#35d8ef" stopOpacity={0.3}/><stop offset="95%" stopColor="#35d8ef" stopOpacity={0}/></linearGradient><linearGradient id="completedFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#b7ff4a" stopOpacity={0.22}/><stop offset="95%" stopColor="#b7ff4a" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="#ffffff10" vertical={false}/><XAxis dataKey="month" tick={{ fill: "#71849a", fontSize: 11 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: "#71849a", fontSize: 11 }} axisLine={false} tickLine={false}/><Tooltip contentStyle={{ background: "#071726", border: "1px solid #ffffff20", borderRadius: 12, color: "#fff" }}/><Area type="monotone" dataKey="created" name="Created" stroke="#35d8ef" strokeWidth={2.5} fill="url(#createdFill)"/><Area type="monotone" dataKey="completed" name="Completed" stroke="#b7ff4a" strokeWidth={2.5} fill="url(#completedFill)"/><Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }}/></AreaChart></ResponsiveContainer></div>
           </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {navigation.slice(1).map((item) => (
-              <button
-                key={item.name}
-                type="button"
-                onClick={() => handleNavigation(item.name)}
-                className="group rounded-2xl border border-slate-200/80 bg-white p-5 text-left shadow-[0_4px_18px_rgba(15,23,42,0.035)] transition-all duration-300 hover:-translate-y-1 hover:border-[#1683FF]/50 hover:bg-blue-50/30 hover:shadow-[0_14px_30px_rgba(22,131,255,0.10)]"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100 transition-all duration-300 group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white group-hover:ring-blue-600">
-                  <Icon name={item.icon} className="h-5 w-5" />
-                </span>
-
-                <h4 className="mt-4 font-semibold text-slate-900">
-                  {item.name}
-                </h4>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  Open {item.name.toLowerCase()} workspace.
-                </p>
-
-                <span className="mt-4 inline-block text-sm font-bold text-blue-600">
-                  Open module →
-                </span>
-              </button>
-            ))}
-          </div>
+          <div className="rounded-2xl border border-white/[0.08] bg-[#071726] p-5 sm:p-6"><div className="mb-3"><h3 className="font-semibold">Task status</h3><p className="mt-1 text-xs text-slate-500">Current distribution from your tasks</p></div><div className="h-[220px]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={statusCounts} dataKey="value" nameKey="name" innerRadius={62} outerRadius={88} paddingAngle={4} stroke="none">{statusCounts.map((entry) => <Cell key={entry.name} fill={entry.color}/>)}</Pie><Tooltip contentStyle={{ background: "#071726", border: "1px solid #ffffff20", borderRadius: 12, color: "#fff" }}/></PieChart></ResponsiveContainer></div><div className="space-y-3">{statusCounts.map(item => <div key={item.name} className="flex items-center justify-between text-xs"><span className="flex items-center gap-2 text-slate-400"><span className="h-2.5 w-2.5 rounded-full" style={{background:item.color}}/>{item.name}</span><span className="font-semibold text-white">{item.value}</span></div>)}</div></div>
         </section>
-      </>
+
+        <section className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_1.3fr]">
+          <div className="rounded-2xl border border-white/[0.08] bg-[#071726] p-5 sm:p-6"><div className="mb-5"><h3 className="font-semibold">Weekly activity</h3><p className="mt-1 text-xs text-slate-500">Tasks created this week</p></div><div className="h-[220px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={weeklyData} margin={{top:10,right:4,left:-22,bottom:0}}><CartesianGrid stroke="#ffffff10" vertical={false}/><XAxis dataKey="day" tick={{fill:"#71849a",fontSize:11}} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{fill:"#71849a",fontSize:11}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:"#071726",border:"1px solid #ffffff20",borderRadius:12,color:"#fff"}}/><Bar dataKey="tasks" name="Tasks" fill="#9b7bff" radius={[6,6,0,0]} maxBarSize={32}/></BarChart></ResponsiveContainer></div></div>
+          <div className="rounded-2xl border border-white/[0.08] bg-[#071726] p-5 sm:p-6"><div className="mb-4 flex items-center justify-between gap-3"><div><h3 className="font-semibold">Recent tasks</h3><p className="mt-1 text-xs text-slate-500">Latest work added to the workspace</p></div><button type="button" onClick={() => handleNavigation("Tasks")} className="text-xs font-medium text-cyan-300 hover:text-cyan-200">View all →</button></div>{recentTasks.length ? <div className="divide-y divide-white/[0.07]">{recentTasks.map(task => <div key={task.id} className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="truncate text-sm font-medium text-slate-200">{task.title || "Untitled task"}</p><p className="mt-1 text-[11px] text-slate-500">{task.created_at ? formatDate(task.created_at) : "No date"}{task.priority ? ` · ${formatLabel(task.priority)} priority` : ""}</p></div><span className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] text-slate-300">{formatLabel(task.status)}</span></div>)}</div> : <div className="py-8 text-center text-sm text-slate-500">No tasks yet. Tasks will appear here when added.</div>}</div>
+        </section>
+
+        <section className="rounded-2xl border border-white/[0.08] bg-[#071726] p-5 sm:p-6"><div className="mb-4 flex items-center justify-between"><div><h3 className="font-semibold">Recent projects</h3><p className="mt-1 text-xs text-slate-500">Latest projects in your workspace</p></div><button type="button" onClick={() => handleNavigation("Projects")} className="text-xs font-medium text-cyan-300 hover:text-cyan-200">Manage projects →</button></div>{recentProjects.length ? <div className="grid grid-cols-1 gap-3 md:grid-cols-3">{recentProjects.map(project => <div key={project.id} className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-4"><div className="flex items-start justify-between gap-2"><p className="truncate text-sm font-medium">{project.name || "Untitled project"}</p><span className="h-2 w-2 shrink-0 rounded-full bg-lime-300"/></div><p className="mt-2 text-xs text-slate-500">{project.status ? formatLabel(project.status) : "No status set"}</p><div className="mt-4 h-1 rounded-full bg-white/10"><div className="h-full w-2/3 rounded-full bg-gradient-to-r from-cyan-400 to-violet-400"/></div></div>)}</div> : <p className="py-6 text-center text-sm text-slate-500">No projects found yet.</p>}</section>
+
+        {selectedCard && <section className="rounded-2xl border border-white/[0.08] bg-[#071726] p-5 sm:p-6" aria-live="polite"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold">{selectedDefinition?.title} details</h3><p className="mt-1 text-xs text-slate-500">{recordsLoading ? "Loading records…" : `${records.length} record(s)`}</p></div><button type="button" onClick={closeCardDetails} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300 hover:bg-white/5">Close</button></div>{renderRecords()}</section>}
+      </div>
     );
   }
 
@@ -640,8 +531,8 @@ export default function AdminDashboard({
             aria-current={activePage === item.name ? "page" : undefined}
             className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
               activePage === item.name
-                ? "bg-[#1683FF] text-white shadow-lg shadow-blue-950/30"
-                : "text-slate-300 hover:bg-white/10 hover:text-white"
+                ? "bg-cyan-300/10 text-cyan-200 ring-1 ring-inset ring-cyan-300/15"
+                : "text-slate-400 hover:bg-white/[0.05] hover:text-white"
             }`}
           >
             <span className="flex w-6 shrink-0 justify-center">
@@ -672,9 +563,7 @@ export default function AdminDashboard({
         return <Progress/>;
 
       case "Reports":
-        return <Reports/>;
-        
-        return renderModulePlaceholder();
+        return <Reports />;
       default:
         return renderOverview();
     }
@@ -713,7 +602,7 @@ export default function AdminDashboard({
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#111111]">
+    <div className="min-h-screen bg-[#04111e] text-white">
       <div className="flex min-h-screen">
         {/* Desktop Sidebar */}
         <aside className="fixed inset-y-0 left-0 z-30 hidden h-screen w-64 shrink-0 flex-col overflow-y-auto border-r border-white/10 bg-[#050505] text-white md:flex">
@@ -751,7 +640,7 @@ export default function AdminDashboard({
 
         {/* Main Content */}
         <main className="min-w-0 flex-1 md:ml-64">
-          <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-4 shadow-sm shadow-slate-200/30 backdrop-blur sm:px-8">
+          <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/[0.08] bg-[#061522]/95 px-4 py-4 backdrop-blur-xl sm:px-8">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -768,7 +657,7 @@ export default function AdminDashboard({
                   NEXOVA X / Workspace
                 </p>
 
-                <h2 className="mt-1 text-lg font-bold">
+                <h2 className="mt-1 text-lg font-bold text-white">
                   {activePage}
                 </h2>
               </div>
@@ -897,7 +786,7 @@ export default function AdminDashboard({
           )}
 
           {/* Page Content */}
-          <div className="mx-auto max-w-[1600px] p-5 sm:p-8 lg:p-10">
+          <div className="mx-auto max-w-[1800px] p-4 sm:p-6 lg:p-8">
             {renderPage()}
           </div>
         </main>

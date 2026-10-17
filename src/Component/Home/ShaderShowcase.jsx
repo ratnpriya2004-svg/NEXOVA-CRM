@@ -74,7 +74,6 @@ export default function ShaderShowcase({ onLogin }) {
           "#f97316",
         ]}
         speed={0.3}
-        backgroundColor="#000000"
       />
 
       <MeshGradient
@@ -82,7 +81,6 @@ export default function ShaderShowcase({ onLogin }) {
         colors={["#000000", "#ffffff", "#06b6d4", "#f97316"]}
         speed={0.2}
         wireframe="true"
-        backgroundColor="transparent"
       />
 
       {/* Background overlay */}
@@ -269,7 +267,6 @@ export default function ShaderShowcase({ onLogin }) {
           thickness={0.1}
           softness={0.2}
           intensity={5}
-          spotsPerColor={5}
           spotSize={0.1}
           pulse={0.1}
           smoke={0.5}

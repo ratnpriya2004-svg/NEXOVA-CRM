@@ -4,6 +4,7 @@ import "./App.css";
 import Login from "./Component/Login/Login.jsx";
 import EmployeeDashboard from "./Component/EmployeeDashboard/EmployeeDashboard.jsx";
 import AdminDashboard from "./Component/AdminDashboard/AdminDashboard.jsx";
+import EmployeeProfile from "./Component/EmployeeDashboard/EmployeeProfile.jsx";
 import { supabase } from "./lib/supabase";
 import Home from "./Component/Home/Home.jsx";
 
@@ -14,6 +15,7 @@ function App() {
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState("");
   const [error, setError] = useState("");
+  const [previousPage, setPreviousPage] = useState("employee-dashboard");
 
   const openDashboard = (profile) => {
     setUserName(profile.full_name || "User");
@@ -137,6 +139,15 @@ function App() {
   setCurrentPage("login");
 };
 
+const handleOpenProfile = () => {
+  setPreviousPage(currentPage);
+  setCurrentPage("employee-profile");
+};
+
+const handleBackToDashboard = () => {
+  setCurrentPage(previousPage);
+};
+
   if (currentPage === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
@@ -150,8 +161,24 @@ function App() {
   }
 
   if (currentPage === "employee-dashboard") {
-    return <EmployeeDashboard employeeName={userName} onLogout={handleLogout} />;
-  }
+  return (
+    <EmployeeDashboard
+      employeeName={userName}
+      onLogout={handleLogout}
+      onOpenProfile={handleOpenProfile}
+    />
+  );
+}
+
+if (currentPage === "employee-profile") {
+  return (
+    <EmployeeProfile
+      employeeName={userName}
+      onBack={handleBackToDashboard}
+      onLogout={handleLogout}
+    />
+  );
+}
 
   if (currentPage === "login") {
   return (
